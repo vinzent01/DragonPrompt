@@ -75,3 +75,11 @@ vector<string> split_lines(const string& input_str) {
     }
     return lines;
 }
+
+bool ContainsString(const std::string& s, const std::vector<std::string>& v){
+    for (const auto& vectorString : v){
+        if (vectorString == s)
+            return true;
+    }
+    return false;
+}

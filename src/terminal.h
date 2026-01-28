@@ -4,6 +4,7 @@
 #include <vector>
 #include <raylib.h>
 #include "utils.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -13,6 +14,7 @@ class Terminal{
     vector<string> history;
     string currentInput;
     Font font;
+    int scrollOffset = 0; 
 
     public:
 

@@ -24,7 +24,7 @@ class Object {
     string laying;
     int count;
 
-    Object(string name, string description, string laying, int count=1){
+    Object(string name, string description, string laying="", int count=1){
         this->Name = name;
         this->Description = description;
         this->laying = laying;
@@ -38,7 +38,7 @@ class Room{
     string Description;
     vector<Object> Objects;
     vector<Entity> Entities;
-    map<string, Room> Exits;
+    map<string, shared_ptr<Room>> Exits;
 
     Room(string name, string description){
         this->Name = name;
@@ -67,7 +67,6 @@ class Room{
 
 
         if (Exits.size() > 0){
-
             fullDescription += "Exits : ";
             std::vector<std::string> exits_str;
 
@@ -79,7 +78,7 @@ class Room{
             for (auto& exit : exits_str){
                 fullDescription += exit;
 
-                if (i != exits_str.size()){
+                if (i != exits_str.size()-1){
                     fullDescription += ", ";
                 }
 
@@ -96,14 +95,28 @@ class Room{
     void AddEntity(Entity entity){
         Entities.push_back(entity);
     }
+
+    void Connect(string exit, shared_ptr<Room> room){
+        Exits[exit] = room;
+    }
 };
 
 shared_ptr<Room> CreateWorld(){
+
+    auto dungeon_entrance = make_shared<Room>("dungeon entrane", "an dungeon entrance");
     auto hall = make_shared<Room>("hall","an old dusty dungeon hall");
 
+    dungeon_entrance->AddObject(
+        Object("large dusty door", "an large old iron door")
+    );
+    
     hall->AddObject(
         Object("statue", "old marble statue of an knight", "on the center", 1)
     );
 
-    return hall;
+    dungeon_entrance->Connect("north", hall);
+    hall->Connect("south", dungeon_entrance);
+
+
+    return dungeon_entrance;
 }

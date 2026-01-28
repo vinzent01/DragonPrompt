@@ -27,11 +27,11 @@ int main(){
     string name = terminal.Prompt("what is your name?");
     player.Name = name;
 
-    terminal.AddEntry("Welcome to DragonAi !");
+    terminal.AddEntry("Welcome to DragonPrompt !");
     terminal.AddEntry("Type (help) for help.");
 
     LookAction lookAction;
-    lookAction.Execute(player, terminal);
+    lookAction.Execute(player, terminal, {});
 
     auto all_actions = GetAllActions();
 
@@ -44,10 +44,11 @@ int main(){
         ParseInput(prompt,command,args);        
         
         for (auto& action : all_actions){
-            if (action->Name == command){
-                action->Execute(player, terminal);
+            if (ContainsString(command, action->Aliases)){
+                action->Execute(player, terminal, args);
             }
         }
+        terminal.AddEntry("\n");
     }
 
     return 0;

@@ -10,18 +10,16 @@ using namespace std;
 
 class Action {
     public:
-    std::string Name;
     std::vector<std::string> Aliases;
     std::string Description;
 
 
-    Action(std::string name, std::string description, std::vector<std::string> Aliases){
-        this->Name = name;
-        this->Aliases = Aliases;
+    Action(vector<string> aliases, std::string description){
+        this->Aliases = aliases;
         this->Description = description;
     }
 
-    virtual void Execute(Player& Player, Terminal& terminal) {
+    void virtual Execute(Player& player, Terminal& terminal, vector<string> args){
 
     }
 };
@@ -29,11 +27,11 @@ class Action {
 class LookAction : public Action{
 
     public :
-    LookAction() : Action("look", "look room arround", std::vector<std::string>{"see"}){
+    LookAction() : Action({"look", "see"}, "look room arround"){
 
     }
 
-    void Execute(Player& player, Terminal& terminal) override{
+    void Execute(Player& player, Terminal& terminal, vector<string> args) override {
         string description = player.CurrentRoom->GetDescription();
         terminal.AddEntry(description);
     }
@@ -41,38 +39,73 @@ class LookAction : public Action{
 
 class ExitAction : public Action{
     public:
-    ExitAction() : Action("exit", "exit the game", std::vector<std::string>{"quit"}){
+    ExitAction() : Action({"exit","quit"}, "exit the game"){
 
     }
 
-    void Execute(Player& player, Terminal& terminal) override {
+    void Execute(Player& player, Terminal& terminal, vector<string> args) override {
         exit(0);
     }
 };
 
 class ClearAction : public Action{
     public:
-    ClearAction() : Action("clear", "clear the terminal", std::vector<std::string>{}){
+    ClearAction() : Action({"clear"}, "clear the terminal"){
 
     }
 
-    void Execute(Player& player, Terminal& terminal) override {
+    void Execute(Player& player, Terminal& terminal, vector<string> args) override {
         terminal.Clear();
     }
 };
+
+class MoveAction : public Action{
+    public:
+    MoveAction() : Action({"move", "go"}, "move to an exit room"){
+
+    }
+
+    void Execute(Player& player, Terminal& terminal, vector<string> args) override {
+
+        if (args.size() < 1){
+            terminal.AddEntry("where?");
+            return;
+        }
+
+        auto& nextRoom = args[0];
+        if (player.CurrentRoom->Exits.count(nextRoom) > 0){
+            player.CurrentRoom = player.CurrentRoom->Exits[nextRoom];
+            terminal.AddEntry(
+                player.CurrentRoom->GetDescription()
+            );
+        }
+    }
+};
+
 
 vector<shared_ptr<Action>> GetAllActions();
 
 class HelpAction : public Action {
     public :
-    HelpAction() : Action("help", "shows all available commands",{}){
+    HelpAction() : Action({"help"}, "shows all available commands"){
 
     }
 
-    void Execute(Player& player, Terminal& terminal) override{
+    void Execute(Player& player, Terminal& terminal, vector<string> args) override{
         for (auto& action : GetAllActions()){
+
+            string aliasesStr = "";
+
+            for (size_t i =0; i< action->Aliases.size(); i++){
+                aliasesStr += action->Aliases[i];
+
+                if (i < action->Aliases.size()-1){
+                    aliasesStr += ", ";
+                }
+            }
+
             terminal.AddEntry(
-                action->Name + " - "+ action->Description
+                aliasesStr + " - "+ action->Description
             );
         }
     }
@@ -85,6 +118,7 @@ vector<shared_ptr<Action>> GetAllActions(){
         make_shared<LookAction>(),
         make_shared<ExitAction>(),
         make_shared<ClearAction>(),
+        make_shared<MoveAction>(),
         make_shared<HelpAction>()
     };
 };

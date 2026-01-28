@@ -42,29 +42,33 @@ std::string Terminal::Update(){
         currentInput.clear();
         return output;
     }
+
+    int totalLines = history.size();
+    scrollOffset += GetMouseWheelMove();
+    scrollOffset = clamp(scrollOffset, 0, totalLines);
+
     return "";
 }
 
-void Terminal::Draw(int x, int y){
+void Terminal::Draw(int x, int y)
+{
+    int linesVisible = (GetScreenHeight() - y - font_size*3) / font_size;
 
-    // Desenha histórico
-    for (auto& entry : history)
-    {
-        DrawMultilineText(entry.c_str(),x,y,font_size, font,GetScreenWidth());
+    int total = history.size();
+    int start = std::max(0, total - linesVisible - scrollOffset);
+    int end   = std::min(total, start + linesVisible);
+
+    for(int i = start; i < end; i++){
+        DrawTextEx(font, history[i].c_str(), { (float)x, (float)y }, font_size, 0, WHITE);
         y += font_size;
     }
 
-    // desenha o prompt
-    y+= font_size;
-
-    // Desenha prompt atual
-    DrawTextEx(font,"> ", (Vector2){10, (float)y}, font_size,0, YELLOW);
-    DrawTextEx(font,currentInput.c_str(), (Vector2){30, (float)y}, font_size,0, YELLOW);
-
-    // Cursor
-    auto text_size = MeasureTextEx(font,currentInput.c_str(), font_size,0);
-    DrawTextEx(font,"_", (Vector2){30 + text_size.x, (float)y}, font_size,0, YELLOW);
+    // prompt
+    y += font_size;
+    DrawTextEx(font, "> ", {10,(float)y}, font_size,0,YELLOW);
+    DrawTextEx(font, currentInput.c_str(), {30,(float)y}, font_size,0,YELLOW);
 }
+
 
 
 std::string Terminal::Prompt(std::string prompt){
